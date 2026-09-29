@@ -11,7 +11,7 @@ from sqlalchemy import create_engine
 
 # ---- Update these to match your MySQL setup ----
 DB_USER = "root"
-DB_PASSWORD = "your_password_here"
+DB_PASSWORD = "********"
 DB_HOST = "localhost"
 DB_NAME = "energy_market"
 # --------------------------------------------------
