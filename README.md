@@ -2,8 +2,6 @@
 
 An analysis of Australia's National Electricity Market (NEM) wholesale price and demand data across all 5 regions, from January 2023 through August 2026. A full pipeline mixing Python, SQL, Excel, and Power BI, moving from raw data acquisition through to a retail pricing model and an interactive dashboard.
 
-**Status: complete. Data pipeline, core SQL queries, Python analysis, Excel margin model, and Power BI dashboard all finished.**
-
 ## Data source
 
 AEMO's [Aggregated Price and Demand Data](https://aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/aggregated-data), published as monthly CSV files per region. Covers NSW1, QLD1, SA1, TAS1, and VIC1, at 5-minute settlement intervals (the format AEMO has used since October 2021, chosen specifically to avoid mixing granularities with the older 30-minute format).
