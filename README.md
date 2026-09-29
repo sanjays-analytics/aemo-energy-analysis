@@ -1,8 +1,8 @@
 # AEMO Energy Market Analysis
 
-An analysis of Australia's National Electricity Market (NEM) wholesale price and demand data across all 5 regions, from January 2023 through August 2026. Part of a wider project mixing Python, SQL, Excel, and Power BI, moving from raw data acquisition through to a retail pricing model.
+An analysis of Australia's National Electricity Market (NEM) wholesale price and demand data across all 5 regions, from January 2023 through August 2026. A full pipeline mixing Python, SQL, Excel, and Power BI, moving from raw data acquisition through to a retail pricing model and an interactive dashboard.
 
-**Status: in progress. Data pipeline, core SQL queries, and Python analysis complete. Excel margin model and Power BI dashboard to follow.**
+**Status: complete. Data pipeline, core SQL queries, Python analysis, Excel margin model, and Power BI dashboard all finished.**
 
 ## Data source
 
@@ -29,10 +29,13 @@ Known edge case: a small number of boundary readings (5 rows, one per region) ar
 
 - `download_aemo_data.py`: the bulk data acquisition script, pulls all 220 monthly region files directly from AEMO.
 - `combine_data.py`: consolidates the 220 files, runs data quality checks, builds the calendar dimension, and exports three cleaned CSVs.
+- `schema_and_load.sql`: creates the three star schema tables (regions, calendar_dim, readings) with their keys and constraints.
 - `load_to_mysql.py`: loads the cleaned data directly into MySQL via SQLAlchemy, bypassing the Import Wizard given the dataset's size.
 - `core_queries.sql`: the four core analytical queries, each preceded by the question it answers.
+- `retail_margin_model.xlsx`: a retail pricing/margin calculator built on top of the wholesale price findings (see Excel section below).
+- Power BI dashboard: a two-page interactive report covering both the SQL and Python findings (see Power BI Dashboard section below).
 
-## Findings so far
+## SQL analysis findings
 
 - **Average price and demand by region**: NSW1 has both the highest average price ($103.81) and highest average demand (7,535 MW), consistent with it being the largest NEM region. VIC1 has the lowest average price ($68.31) despite the second-highest demand (4,848 MW), likely reflecting its historically heavy reliance on low-cost brown coal baseload generation.
 - **Price volatility by month**: varies substantially, from as low as $19 in an excluded partial month to a peak of $994.82 in June 2025, roughly double the next-highest month. Winter months generally trend more volatile, consistent with heating demand spikes and lower solar output, though June 2025 specifically stands out enough to be worth investigating against real grid events.
@@ -57,8 +60,35 @@ Known edge case: a small number of boundary readings (5 rows, one per region) ar
 
 ![June 2025 daily average demand by region](images/june2025_daily_demand_by_region.png)
 
-## Next steps
+**Two further volatility spikes surfaced later, in the Power BI monthly volatility chart, and are flagged here rather than fully investigated:** a spike in NSW1 around mid-2024, and a spike in SA1 in January 2026 (standard deviation of $1,340.84, the highest recorded outside the June 2025 event itself). Both sit outside the window this dataset's daily-breakdown analysis focused on, and are noted as a natural next step rather than chased down with the same rigor as the June 2025 event above.
 
-Excel: a retail pricing/margin calculator, translating wholesale price behaviour into what a retailer would need to charge.
+## Excel: retail margin model
 
-Power BI: a regional market dashboard covering price and demand trends, volatility, and negative price events.
+`retail_margin_model.xlsx` takes the wholesale price findings above and asks the practical follow-on question: what would a retailer actually need to charge to stay profitable against that wholesale volatility?
+
+- A four-scenario table comparing wholesale cost against retail rate, covering a spread of pricing conditions from calm to volatile, rather than a single average-case estimate that would hide the risk the volatility analysis surfaced.
+- One adjustable input cell, so the retail rate assumption can be flexed without rebuilding the model.
+- Conditional formatting (a colour scale) on the Margin % column in place of a chart. An earlier bar chart attempt was dropped: wholesale prices during negative or extreme events sit on such a different scale from typical retail rates ($120 vs $17,500) that the bars became unreadable, and Excel's chart options didn't offer a workable log scale. The colour scale reads the risk at a glance without that distortion.
+
+## Power BI dashboard
+
+A two-page interactive report built on the same MySQL data, bringing the SQL and Python findings together into one place.
+
+**Page 1, Overview:**
+- KPI cards for average price and average demand across the full dataset
+- Negative Price Events by region (table)
+- Average Demand by Season (bar chart)
+- Average Price by Region and Average Demand by Region (bar charts)
+- Wholesale Price Over Time, a full-width line chart across all 5 regions, the same series that surfaces the June 2025 spike investigated above
+
+![Power BI dashboard, Overview page](images/dashboard_page1_overview.png)
+
+**Page 2, Deep Dive: Volatility and Correlation:**
+- Price Volatility by Month (line chart), the chart that surfaced the two further spikes noted above
+- Demand vs Price by Region (scatter plot), visually separating the low-demand, high-volatility southern regions (SA1, TAS1) from the higher-demand mainland regions
+- A Key Insights text panel summarising the volatility, demand, and correlation findings
+- A region slicer, scoped to this page only
+
+![Power BI dashboard, Deep Dive page](images/dashboard_page2_deepdive.png)
+
+Region colours are matched consistently across every visual on both pages, so the same colour always means the same region whether it's a bar, a line, or a scatter point.
